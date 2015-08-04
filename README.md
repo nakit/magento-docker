@@ -1,68 +1,44 @@
-## Magento docker image 
+# About this Repo
 
-### Requirements
-This docker image expects 2 other linked containers to work .
+This is a fork of https://github.com/paimpozhil/docker-magento, with an emphasis on less dependecies and smaller image.
 
-1. Mysqldb or Mariadb linked as 'db'
+## Requirements
 
-2. Memcached linked as 'cache'
-
-### Starting this container
-
+This container requires two other containers. One is a MySQL container linked as `db`, the other is a Memcached container linked as `cache`. For example:
 ```
-$ docker run -td --name mariadb -e USER=user -e PASS=password  paintedfox/mariadb
+docker run --name mysqldb -e MYSQL_ROOT_PASSWORD="roopass" -e MYSQL_DATABASE="magento" -e MYSQL_USER="magento" -e MYSQL_PASSWORD="magentopass" --detach mysql
 ```
-
+And:
 ```
-$ docker run --name memcached -d -p 11211 sylvainlasnier/memcached
+docker run --name memcache --detach memcached
 ```
 
-Then finally run our docker-magento container
+Note: changing `MYSQL_ROOT_PASSWORD`, `MYSQL_USER`, and `MYSQL_PASSWORD` to something more secure is recommended.
+
+## Building this container
 
 ```
-docker run -p 80:80 -link mariadb:db --link memcached:cache -td paimpozhil/magento-docker
+docker build --tag nakit/magento https://github.com/nakit/magento-docker.git
 ```
 
-Now visit your public IP in your browser and you will see the installer ready to go.. enter the database password when installer prompts ('password') is the default. 
-
-
-### Advanced information 
-
-This Image will utilize the environment variables from the linked containers and automatically configure its magento itself.
-
-However during install you may have to enter the database password once which is the only manual work.
-
-Cache will be preconfigured.
-
-
-### SSH 
-
-Now as you think you may need to get into our Docker-magento container to be easily look into things, I did not package an SSH server just for this purpose.
-
-You can use NSENTER to get into our container
-#### https://github.com/jpetazzo/nsenter 
-
-
-### Builing the Image yourself.
+## Starting this container
 
 ```
-
-git clone https://github.com/paimpozhil/docker-magento.git .
-docker build -t docker-magento .
-docker run -p 80:80 -link mariadb:db --link memcached:cache -td docker-magento 
+docker run --publish 80:80 --link mysqldb:db --link memcache:cache --detach nakit/magento
 ```
 
-### Need support?
+### Container environment variables
 
-#### http://dockerteam.com
+`DB_ENV_MYSQL_DATABASE`, imported from `db`, defaults to `magento`
+`DB_ENV_MYSQL_USER`, imported from `db`
+`DB_ENV_MYSQL_PASSWORD`, imported from `db`
 
+`MAGENTO_LOCALE`, defaults to `pt_BR`
+`MAGENTO_TIMEZONE`, defaults to `America/Sao_Paulo`
+`MAGENTO_CURRENCY`, defaults to `BRL`
 
-Credits:
-
-Please look at these repositories  for adding more parameters/configuring them 
-
-#### https://github.com/SylvainLasnier/memcached/blob/master/README.md
-
-#### https://github.com/Painted-Fox/docker-mariadb
-
-
+`MAGENTO_ADMIN_USER`, defaults to `admin`
+`MAGENTO_ADMIN_PASS`, defaults to `admin25`
+`MAGENTO_ADMIN_EMAIL`, defaults to `admin@localhost`
+`MAGENTO_ADMIN_FIRSTNAME`, defaults to `Admin`
+`MAGENTO_ADMIN_LASTNAME`, defaults to `Admin`

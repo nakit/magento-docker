@@ -1,45 +1,45 @@
-FROM centos:centos6
+FROM debian:jessie
+MAINTAINER Nakit.com.br <odoo@nakit.com.br>
 
-# because theses where the most stable php 5.3.x repos are!
+# Install nginx and php-fpm
+RUN set -x; \
+    apt-get update && \
+    apt-get install -y --no-install-recommends --no-install-suggests \
+      bzr \
+      ca-certificates \
+      nginx \
+      php5-fpm \
+      php5-gd \
+      php5-mcrypt \
+      php5-mysql && \
+    echo "daemon off;" >> /etc/nginx/nginx.conf
 
-MAINTAINER paimpozhil@gmail.com
+# Configure nginx and php-fpm
+COPY default.conf /etc/nginx/conf.d/default.conf
 
-# Centos default image for some reason does not have tools like Wget/Tar/etc so lets add them
-RUN yum -y install wget
+# Install Magento
+ENV MAGENTO_VERSION=1.9.2.0
+ENV MAGENTO_PACKAGE=magento-${MAGENTO_VERSION}-2015-07-08-02-50-14.tar.gz
+# wget -O /tmp/magento-1.9.2.0-2015-07-08-02-50-14.tar.gz "https://raw.githubusercontent.com/nakit/magento-docker/master/magento-1.9.2.0-2015-07-08-02-50-14.tar.gz"
+COPY ${MAGENTO_PACKAGE} /tmp/${MAGENTO_PACKAGE}
+RUN set -x; \
+    tar -zxvf /tmp/${MAGENTO_PACKAGE} -C /var/lib && \
+    rm -f /tmp/${MAGENTO_PACKAGE}
 
-# EPEL has good RPM goodies!
-RUN rpm -Uvh   http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+# Configure memcached
+COPY mage-cache.xml /var/lib/magento/app/etc/mage-cache.xml
+RUN set -x; \
+    sed -e  '/<\/admin>/ r /var/lib/magento/app/etc/mage-cache.xml' \
+        -i /var/lib/magento/app/etc/local.xml.template
 
-RUN yum -y install which openssh-server php-mysql php-gd php-mcrypt php-zip php-xml php-iconv php-curl php-soap php-simplexml php-pdo php-dom php-cli php-fpm nginx
+# Install odoo connector
+RUN set -x; \
+    bzr branch lp:magentoerpconnect/magento-module-oerp6.x-stable /var/lib/magento-module && \
+    ln -fs /var/lib/magento-module/Openlabs_OpenERPConnector-1.1.0/Openlabs /var/lib/magento/app/code/community/ && \
+    ln -fs /var/lib/magento-module/Openlabs_OpenERPConnector-1.1.0/app/etc/modules/Openlabs_OpenERPConnector.xml /var/lib/magento/app/etc/modules
 
-RUN yum -y install tar mysql
+VOLUMES ["/var/lib/magento", "/var/lib/magento-module", "/var/export"]
 
-ADD default.conf /etc/nginx/conf.d/default.conf
- 
-RUN chkconfig php-fpm on
+COPY start.sh /start.sh
 
-RUN chkconfig nginx on
-
-#install magento files 
-
-RUN cd /tmp && wget http://www.magentocommerce.com/downloads/assets/1.9.0.1/magento-1.9.0.1.tar.gz
-
-RUN cd /tmp && tar -zxvf magento-1.9.0.1.tar.gz
-
-RUN mv /tmp/magento /var/www
-
-RUN cd /var/www/ && chmod -R o+w media var && chmod o+w app/etc && rm -f magento-*tar.gz
-
-ADD mage-cache.xml /var/www/app/etc/mage-cache.xml
-
-ADD seturl.php /var/www/seturl.php
-
-ADD start.sh /start.sh
-
-RUN chmod 0755 /start.sh 
-
-RUN echo "daemon off;" >> /etc/nginx/nginx.conf
-
-CMD /start.sh
-
-
+ENTRYPOINT ["/start.sh"]

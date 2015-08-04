@@ -1,34 +1,37 @@
 #! /bin/bash
 
-if [[ -e /firstrun ]]; then
+set -x
 
-echo "not first run so skipping initialization"
+if [ ! -e "${HOME}/firstrun" ]; then
+  sed -e "s/<host>localhost/<host>db/g" \
+      -e "s/<username\/>/<username>${DB_ENV_MYSQL_USER}<\/username>/" \
+      -e "s/<password\/>/<password>${DB_ENV_MYSQL_PASSWORD}<\/password>/g" \
+      -i /var/www/app/etc/config.xml
 
-else 
+  php -f /var/lib/magento/install.php -- \
+      --license_agreement_accepted yes \
+      --locale "${MAGENTO_LOCALE:-pt_BR}" \
+      --timezone "${MAGENTO_TIMEZONE:-America/Sao_Paulo}" \
+      --default_currency "${MAGENTO_CURRENCY:-BRL}" \
+      --db_host "db" \
+      --db_name "${DB_ENV_MYSQL_DATABASE:-magento}" \
+      --db_user "${DB_ENV_MYSQL_USER}" \
+      --db_pass "${DB_ENV_MYSQL_PASSWORD}" \
+      --url "http://127.0.0.1/" \
+      --skip_url_validation \
+      --use_rewrites no \
+      --use_secure no \
+      --secure_base_url "" \
+      --use_secure_admin no \
+      --admin_username "${MAGENTO_ADMIN_USER:-admin}" \
+      --admin_password "${MAGENTO_ADMIN_PASS:-admin25}" \
+      --admin_email "${MAGENTO_ADMIN_EMAIL:-admin@localhost}" \
+      --admin_firstname "${MAGENTO_ADMIN_FIRSTNAME:-Admin}" \
+      --admin_lastname "${MAGENTO_ADMIN_LASTNAME:-Admin}"
 
-echo "setting the default installer info for magento"
-sed -i "s/<host>localhost/<host>db/g" /var/www/app/etc/config.xml
-sed -i "s/<username\/>/<username>user<\/username>/" /var/www/app/etc/config.xml
-sed -i "s/<password\/>/<password>password<\/password>/g" /var/www/app/etc/config.xml
-
-echo "Creating the magento database..."
-
-echo "create database magento" | mysql -u "$DB_ENV_USER" --password="$DB_ENV_PASS" -h db -P "$DB_PORT_3306_TCP_PORT"
-
-while [ $? -ne 0 ]; do
-	sleep 5
-        echo "create database magento" | mysql -u "$DB_ENV_USER" --password="$DB_ENV_PASS" -h db -P "$DB_PORT_3306_TCP_PORT"
-        echo "show tables" | mysql -u "$DB_ENV_USER" --password="$DB_ENV_PASS" -h db -P "$DB_PORT_3306_TCP_PORT" magento
-done
-
-echo "Adding Magento Caching"
-
-sed -i -e  '/<\/config>/{ r /var/www/app/etc/mage-cache.xml' -e 'd}' /var/www/app/etc/local.xml.template
-
-touch /firstrun
-
+  touch "${HOME}/firstrun"
 fi
 
+chown -R www-data:www-data /var/lib/magento /var/lib/magento-module
 service php-fpm start
-
-nginx 
+nginx
