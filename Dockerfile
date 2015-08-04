@@ -20,9 +20,9 @@ COPY nginx.conf   /etc/nginx/nginx.conf
 COPY default.conf /etc/nginx/conf.d/default.conf
 
 # Install Magento
-ENV MAGENTO_VERSION=1.9.2.0
-ENV MAGENTO_PACKAGE=magento-${MAGENTO_VERSION}-2015-07-08-02-50-14.tar.gz
-# wget -O /tmp/magento-1.9.2.0-2015-07-08-02-50-14.tar.gz "https://raw.githubusercontent.com/nakit/magento-docker/master/magento-1.9.2.0-2015-07-08-02-50-14.tar.gz"
+ENV MAGENTO_VERSION=1.9.2.1
+ENV MAGENTO_PACKAGE=magento-${MAGENTO_VERSION}-2015-08-03-06-35-45.tar.gz
+# wget -O /tmp/magento-1.9.2.1-2015-08-03-06-35-45.tar.gz "https://raw.githubusercontent.com/nakit/magento-docker/master/magento-1.9.2.1-2015-08-03-06-35-45.tar.gz"
 COPY ${MAGENTO_PACKAGE} /tmp/${MAGENTO_PACKAGE}
 RUN set -x; \
     tar -zxvf /tmp/${MAGENTO_PACKAGE} -C /var/lib && \
