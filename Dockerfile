@@ -8,6 +8,7 @@ RUN set -x; \
       bzr \
       ca-certificates \
       nginx \
+      php5-curl \
       php5-fpm \
       php5-gd \
       php5-mcrypt \
