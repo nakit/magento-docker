@@ -6,7 +6,7 @@ if [ ! -e "${HOME}/firstrun" ]; then
   sed -e "s/<host>localhost/<host>db/g" \
       -e "s/<username\/>/<username>${DB_ENV_MYSQL_USER}<\/username>/" \
       -e "s/<password\/>/<password>${DB_ENV_MYSQL_PASSWORD}<\/password>/g" \
-      -i /var/www/app/etc/config.xml
+      -i /var/lib/magento/app/etc/config.xml
 
   php -f /var/lib/magento/install.php -- \
       --license_agreement_accepted yes \
