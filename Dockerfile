@@ -11,10 +11,11 @@ RUN set -x; \
       php5-fpm \
       php5-gd \
       php5-mcrypt \
-      php5-mysql && \
-    echo "daemon off;" >> /etc/nginx/nginx.conf
+      php5-mysql
 
 # Configure nginx and php-fpm
+COPY php-fpm.conf /etc/php5/fpm/php-fpm.conf
+COPY nginx.conf   /etc/nginx/nginx.conf
 COPY default.conf /etc/nginx/conf.d/default.conf
 
 # Install Magento
@@ -38,7 +39,7 @@ RUN set -x; \
     ln -fs /var/lib/magento-module/Openlabs_OpenERPConnector-1.1.0/Openlabs /var/lib/magento/app/code/community/ && \
     ln -fs /var/lib/magento-module/Openlabs_OpenERPConnector-1.1.0/app/etc/modules/Openlabs_OpenERPConnector.xml /var/lib/magento/app/etc/modules
 
-VOLUMES ["/var/lib/magento", "/var/lib/magento-module", "/var/export"]
+VOLUMES ["/var/lib/magento", "/var/lib/magento-module"]
 
 COPY start.sh /start.sh
 
