@@ -40,7 +40,7 @@ RUN set -x; \
     ln -fs /var/lib/magento-module/Openlabs_OpenERPConnector-1.1.0/Openlabs /var/lib/magento/app/code/community/ && \
     ln -fs /var/lib/magento-module/Openlabs_OpenERPConnector-1.1.0/app/etc/modules/Openlabs_OpenERPConnector.xml /var/lib/magento/app/etc/modules
 
-VOLUMES ["/var/lib/magento", "/var/lib/magento-module"]
+VOLUME ["/var/lib/magento", "/var/lib/magento-module"]
 
 COPY start.sh /start.sh
 
