@@ -42,6 +42,8 @@ RUN set -x; \
 
 VOLUME ["/var/lib/magento", "/var/lib/magento-module"]
 
+EXPOSE 80
+
 COPY start.sh /start.sh
 
 ENTRYPOINT ["/start.sh"]
